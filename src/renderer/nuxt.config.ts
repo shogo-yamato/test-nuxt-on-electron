@@ -17,7 +17,7 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'test-adding-electron-to-create-nuxt-app',
+    title: 'test-nuxt-on-electron',
     htmlAttrs: {
       lang: 'en',
     },

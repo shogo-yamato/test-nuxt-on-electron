@@ -1,6 +1,6 @@
-appId: com.test-adding-electron-to-create-nuxt-app.app
+appId: com.test-nuxt-on-electron.app
 copyright: shogo-yamato
-productName: test-adding-electron-to-create-nuxt-app
+productName: test-nuxt-on-electron
 
 asar: true
 

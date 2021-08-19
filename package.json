@@ -1,5 +1,5 @@
 {
-  "name": "test-adding-electron-to-create-nuxt-app",
+  "name": "test-nuxt-on-electron",
   "version": "1.0.0",
   "private": true,
   "main": "dist/main/index.js",

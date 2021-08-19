@@ -1,4 +1,4 @@
-# test-adding-electron-to-create-nuxt-app
+# test-nuxt-on-electron
 
 ## Build Setup
 
