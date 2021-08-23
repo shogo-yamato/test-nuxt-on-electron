@@ -1,0 +1,27 @@
+.default-container {
+  display: grid;
+  grid-template-areas:
+    'nav'
+    'view';
+  grid-template-rows: max-content auto;
+  row-gap: 16px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 32px;
+  background-color: $pink-rose-mallow;
+
+  > .nav {
+    display: flex;
+    grid-area: nav;
+    column-gap: 16px;
+  }
+
+  > .nav > .link {
+    font-size: 2rem;
+    line-height: 1.5;
+  }
+
+  > .view {
+    grid-area: view;
+  }
+}

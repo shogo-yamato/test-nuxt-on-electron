@@ -3,7 +3,8 @@
 import { pathToFileURL } from 'url'
 import http from 'http'
 import path from 'path'
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import fs from 'fs'
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
@@ -45,6 +46,7 @@ function createWindow() {
     height: 1000,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: !isDev,
     },
   })
   // REVIEW:
@@ -179,6 +181,7 @@ function createDummyWindow(): number {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: !isDev,
     },
   })
   // REVIEW:
@@ -200,4 +203,43 @@ ipcMain.handle('close-other-windows', (_): string | void => {
     if (window.id !== currentWindow.id) window.close()
   })
   return `ID of the remaining window is: ${currentWindow.id}`
+})
+
+ipcMain.handle('get-sample-text', (_): string | void => {
+  return fs.readFileSync(path.resolve(__dirname, '../../sample.txt'), 'utf8')
+})
+
+ipcMain.handle('get-sample-text-async', async (_): Promise<string | void> => {
+  try {
+    return await new Promise((resolve, reject) => {
+      fs.readFile(
+        path.resolve(__dirname, '../../sample-2.txt'),
+        'utf8',
+        (error, data): string | void => {
+          if (error) return reject(error)
+          return resolve(data)
+        }
+      )
+    })
+  } catch (error) {
+    dialog.showErrorBox(`${error.code}${error.errno}`, error.message)
+    return 'Failed to load file.'
+  }
+})
+
+ipcMain.handle('get-images-from-dialog', (_): string[] | undefined => {
+  const window = BrowserWindow.getFocusedWindow()
+  if (!window) return undefined
+  const files = dialog.showOpenDialogSync(window, {
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      {
+        name: 'Images',
+        extensions: ['jpg', 'png', 'gif'],
+      },
+    ],
+  })
+  return (
+    files?.map((filePath) => pathToFileURL(filePath).toString()) ?? undefined
+  )
 })

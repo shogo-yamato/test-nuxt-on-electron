@@ -1,5 +1,6 @@
 <template>
-  <div class="index-container">
+  <div class="view-container">
+    <h1 class="page-title">INDEX</h1>
     <test-component />
   </div>
 </template>

@@ -1,11 +1,12 @@
 <template>
   <div class="test-component">
-    <h1 class="title">This is a test component.</h1>
+    <h2 class="title">This is a test component.</h2>
     <p class="message">{{ messageFromMain }}</p>
     <p class="message">{{ messageFromMenu }}</p>
-    <nuxt-link class="link" to="/tutorial">INTERNAL LINK</nuxt-link>
-    <button class="button" @click="openDummyWindow">OPEN DUMMY WINDOW</button>
-    <button class="button" @click="closeOtherWindows">
+    <button class="base-button" @click="openDummyWindow">
+      OPEN DUMMY WINDOW
+    </button>
+    <button class="base-button" @click="closeOtherWindows">
       CLOSE OTHER WINDOWS
     </button>
   </div>
