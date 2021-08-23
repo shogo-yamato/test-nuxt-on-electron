@@ -1,11 +1,13 @@
 // courtesy of https://github.com/282Haniwa/nuxt-electron-example/blob/master/src/main/index.ts
 
 import { pathToFileURL } from 'url'
-import { app, BrowserWindow } from 'electron'
+import http from 'http'
+import path from 'path'
+import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+// @ts-ignore
+import { Nuxt, Builder } from 'nuxt'
+import { AddressInfo } from 'node:net'
 import nuxtConfig from '../renderer/nuxt.config'
-const http = require('http')
-const path = require('path')
-const { Nuxt, Builder } = require('nuxt')
 
 // @ts-ignore
 nuxtConfig.rootDir = path.resolve('src/renderer')
@@ -25,7 +27,8 @@ if (isDev) {
     process.exit(1)
   })
   server.listen()
-  _NUXT_URL_ = `http://localhost:${server.address().port}`
+  const { port } = server.address() as AddressInfo
+  _NUXT_URL_ = `http://localhost:${port}`
   console.log(`Nuxt working on ${_NUXT_URL_}`)
   /* eslint-enable */
 } else {
@@ -34,20 +37,19 @@ if (isDev) {
   ).toString()
 }
 
-let win: BrowserWindow | null = null
+let window: BrowserWindow | null
 
 function createWindow() {
-  win = new BrowserWindow({
+  window = new BrowserWindow({
     width: 1400,
     height: 1000,
     webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: false,
-      preload: path.resolve(path.join(__dirname, 'preload.js')),
-      webSecurity: false,
+      preload: path.join(__dirname, 'preload.js'),
     },
   })
-  win.on('closed', () => (win = null))
+  // REVIEW:
+  // 要る?
+  window.on('closed', () => (window = null))
   if (isDev) {
     /* eslint-disable no-console */
     const {
@@ -57,14 +59,14 @@ function createWindow() {
     installExtension(VUEJS_DEVTOOLS.id)
       .then((name: any) => {
         console.log(`Added Extension: ${name}`)
-        if (win) win.webContents.openDevTools()
+        if (window) window.webContents.openDevTools()
       })
       .catch((err: any) => console.log('An error occurred: ', err))
     const pollServer = () => {
       http
         .get(_NUXT_URL_, (res: any) => {
           if (res.statusCode === 200) {
-            if (win) win.loadURL(_NUXT_URL_)
+            if (window) window.loadURL(_NUXT_URL_)
           } else {
             console.log('restart poolServer')
             setTimeout(pollServer, 300)
@@ -75,9 +77,70 @@ function createWindow() {
     pollServer()
     /* eslint-enable */
   } else {
-    return win.loadURL(_NUXT_URL_)
+    return window.loadURL(_NUXT_URL_)
   }
 }
+
+// const count = 0
+
+Menu.setApplicationMenu(
+  Menu.buildFromTemplate([
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New',
+          click() {
+            console.log('NEW MENU')
+            createDummyWindow()
+          },
+        },
+        {
+          label: 'File',
+          click() {
+            console.log('FILE MENU')
+            createDummyWindow()
+          },
+        },
+        {
+          label: 'ALIGN ALL WINDOWS',
+          click() {
+            // const focusedWindow = BrowserWindow.getFocusedWindow()
+            // focusedWindow?.webContents.send(
+            //   'hello-from-menu',
+            //   `message from menu / count: ${++count}`
+            // )
+            const windows = BrowserWindow.getAllWindows()
+            windows.reverse().forEach((window, index): void => {
+              window.setPosition(100 + 150 * index, 100 + 50 * index)
+              window.moveTop()
+              window.webContents.send(
+                'align-all-windows',
+                `This is window No.${index + 1}`
+              )
+            })
+          },
+        },
+        { role: 'close' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    },
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+    {
+      label: 'Help',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'reload' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+      ],
+    },
+  ])
+)
 
 app.whenReady().then(() => {
   createWindow()
@@ -98,4 +161,43 @@ app.on('window-all-closed', () => {
 // https://github.com/nuxt/nuxt.js/blob/0145578493a123ee0ff0e9adc4921582d456d366/packages/builder/src/builder.js#L775
 app.on('will-quit', () => {
   if (isDev) builder.close()
+})
+
+const windowName: string[] = ['ばなな', 'おれんじ', 'あっぷる']
+
+// ipcMain.on('hello-to-main', (event: IpcMainEvent): void => {
+//   const dummyWindowId = createDummyWindow()
+//   event.reply(
+//     'hello-from-main',
+//     `${windowName[dummyWindowId % 3]}-${dummyWindowId}`
+//   )
+// })
+
+function createDummyWindow(): number {
+  window = new BrowserWindow({
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  })
+  // REVIEW:
+  // 要る?
+  window.on('closed', () => (window = null))
+  window.loadURL(_NUXT_URL_)
+  return window.id
+}
+
+ipcMain.handle('open-dummy-window', (_): string => {
+  const dummyWindowId = createDummyWindow()
+  return `${windowName[dummyWindowId % 3]}-${dummyWindowId}`
+})
+
+ipcMain.handle('close-other-windows', (_): string | void => {
+  const currentWindow = BrowserWindow.getFocusedWindow()
+  if (!currentWindow) return
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (window.id !== currentWindow.id) window.close()
+  })
+  return `ID of the remaining window is: ${currentWindow.id}`
 })

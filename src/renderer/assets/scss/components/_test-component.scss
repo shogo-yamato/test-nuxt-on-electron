@@ -1,11 +1,16 @@
 .test-component {
   display: flex;
   flex-direction: column;
+  row-gap: 16px;
   align-items: center;
   justify-content: center;
+  line-height: 1.5;
 
   > .title {
     font-size: 5rem;
-    line-height: 1.5;
+  }
+
+  > .message {
+    font-size: 2rem;
   }
 }
