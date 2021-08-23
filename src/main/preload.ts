@@ -1,10 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('electron', {
-  sendHelloToMain() {
-    return ipcRenderer.send('hello-to-main')
+  on(channel: string, func: any) {
+    return ipcRenderer.on(channel, func)
   },
-  receiveHello(channel: string, fn: any) {
-    return ipcRenderer.on(channel, fn)
+  async invoke(channel: string) {
+    return await ipcRenderer.invoke(channel)
   },
 })

@@ -4,7 +4,6 @@ import { pathToFileURL } from 'url'
 import http from 'http'
 import path from 'path'
 import { app, BrowserWindow, ipcMain, Menu } from 'electron'
-import { IpcMainEvent } from 'electron/main'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
@@ -104,7 +103,7 @@ Menu.setApplicationMenu(
           },
         },
         {
-          label: 'Hello',
+          label: 'ALIGN ALL WINDOWS',
           click() {
             // const focusedWindow = BrowserWindow.getFocusedWindow()
             // focusedWindow?.webContents.send(
@@ -116,7 +115,7 @@ Menu.setApplicationMenu(
               window.setPosition(100 + 150 * index, 100 + 50 * index)
               window.moveTop()
               window.webContents.send(
-                'hello-from-menu',
+                'align-all-windows',
                 `This is window No.${index + 1}`
               )
             })
@@ -166,13 +165,13 @@ app.on('will-quit', () => {
 
 const windowName: string[] = ['ばなな', 'おれんじ', 'あっぷる']
 
-ipcMain.on('hello-to-main', (event: IpcMainEvent): void => {
-  const dummyWindowId = createDummyWindow()
-  event.reply(
-    'hello-from-main',
-    `${windowName[dummyWindowId % 3]}-${dummyWindowId}`
-  )
-})
+// ipcMain.on('hello-to-main', (event: IpcMainEvent): void => {
+//   const dummyWindowId = createDummyWindow()
+//   event.reply(
+//     'hello-from-main',
+//     `${windowName[dummyWindowId % 3]}-${dummyWindowId}`
+//   )
+// })
 
 function createDummyWindow(): number {
   window = new BrowserWindow({
@@ -188,3 +187,17 @@ function createDummyWindow(): number {
   window.loadURL(_NUXT_URL_)
   return window.id
 }
+
+ipcMain.handle('open-dummy-window', (_): string => {
+  const dummyWindowId = createDummyWindow()
+  return `${windowName[dummyWindowId % 3]}-${dummyWindowId}`
+})
+
+ipcMain.handle('close-other-windows', (_): string | void => {
+  const currentWindow = BrowserWindow.getFocusedWindow()
+  if (!currentWindow) return
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (window.id !== currentWindow.id) window.close()
+  })
+  return `ID of the remaining window is: ${currentWindow.id}`
+})
