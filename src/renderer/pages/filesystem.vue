@@ -10,11 +10,12 @@
         rows="10"
         class="textarea"
       ></textarea>
-      <button class="base-button" @click="getSampleText">
-        GET TEXT FROM FILE
+      <button class="base-button" @click="getSampleTextAsync">FAIL</button>
+      <button class="base-button" @click="getTextFromDialogAsync">
+        GET TEXT FROM DIALOG (ASYNC)
       </button>
-      <button class="base-button" @click="getSampleTextAsync">
-        GET TEXT FROM FILE (ASYNC)
+      <button class="base-button" @click="saveTextFromTextareaAsync">
+        SAVE TEXT FROM TEXTAREA (ASYNC)
       </button>
       <div class="images">
         <p v-if="!images.length" class="empty">No images are loaded🥺</p>
@@ -31,6 +32,9 @@
       <button class="base-button" @click="getImagesFromDialog">
         GET IMAGES FROM DIALOG
       </button>
+      <button class="base-button" @click="getImagesFromDialogAsync">
+        GET IMAGES FROM DIALOG (ASYNC)
+      </button>
     </div>
   </div>
 </template>
@@ -42,70 +46,34 @@ export default Vue.extend({
   data() {
     return {
       text: 'initial text data',
-      images: [] as { path: string; loading: boolean }[],
+      images: [] as string[],
     }
   },
   methods: {
-    async getSampleText(): Promise<void> {
-      this.text = await window.electron.invoke('get-sample-text')
-    },
+    // async getSampleText(): Promise<void> {
+    //   this.text = await window.electron.invoke('get-sample-text')
+    // },
     async getSampleTextAsync(): Promise<void> {
-      this.text = await window.electron.invoke('get-sample-text-async')
+      const text = await window.electron.invoke('get-sample-text-async')
+      if (text) this.text = text
+    },
+    async getTextFromDialogAsync(): Promise<void> {
+      const text = await window.electron.invoke('get-text-from-dialog-async')
+      if (text) this.text = text
+    },
+    async saveTextFromTextareaAsync(): Promise<void> {
+      await window.electron.invoke('save-text-from-textarea-async', this.text)
     },
     async getImagesFromDialog(): Promise<void> {
       const images = await window.electron.invoke('get-images-from-dialog')
       if (images) this.images = images
     },
+    async getImagesFromDialogAsync(): Promise<void> {
+      const images = await window.electron.invoke(
+        'get-images-from-dialog-async'
+      )
+      if (images) this.images = images
+    },
   },
 })
 </script>
-
-<style lang="scss" scoped>
-@import 'assets/scss/app';
-
-.filesystem-container {
-  display: flex;
-  flex-direction: column;
-  row-gap: 16px;
-  align-items: center;
-  justify-content: flex-start;
-
-  > .textarea {
-    width: 500px;
-    padding: 16px;
-    font-size: 1.6rem;
-    line-height: 1.5;
-    color: $black-dark-grey;
-    background-color: $white-dr-white;
-    border: 1px solid $grey;
-    border-radius: 3px;
-  }
-
-  > .images {
-    display: flex;
-    flex-direction: column;
-    row-gap: 16px;
-    align-items: center;
-    width: 80%;
-    min-height: 300px;
-  }
-
-  > .images > .empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 300px;
-  }
-
-  > .images > .image {
-    width: 100%;
-    height: 300px;
-    object-fit: contain;
-  }
-
-  > .images > .image.-loading {
-    filter: blur(8px);
-  }
-}
-</style>
