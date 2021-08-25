@@ -40,6 +40,11 @@ $ yarn build:main
 # command to build Electron app
 $ yarn build:electron
 
+# clean build directories
+$ yarn clean
+       clean:build
+       clean:dist
+
 # make a git commit (recommended)
 $ yarn commit
 ```
