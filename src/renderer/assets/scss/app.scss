@@ -16,11 +16,17 @@
 // objects
 @import 'objects/common-container';
 @import 'objects/flex-container';
-@import 'objects/index-container';
+@import 'objects/default-container';
+@import 'objects/view-container';
+@import 'objects/filesystem-container';
 
 // components
 @import 'components/main';
+@import 'components/page-title';
 @import 'components/test-component';
+
+// components/buttons
+@import 'components/buttons/base-button';
 
 // utilities
 @import 'utilities/main';

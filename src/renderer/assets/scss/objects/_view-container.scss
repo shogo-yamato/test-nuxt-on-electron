@@ -1,0 +1,7 @@
+.view-container {
+  display: grid;
+  grid-template-areas:
+    'title'
+    'content';
+  grid-template-rows: max-content auto;
+}

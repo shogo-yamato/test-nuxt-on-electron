@@ -3,7 +3,8 @@
 import { pathToFileURL } from 'url'
 import http from 'http'
 import path from 'path'
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
+import fs from 'fs'
+import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
@@ -45,6 +46,7 @@ function createWindow() {
     height: 1000,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: !isDev,
     },
   })
   // REVIEW:
@@ -179,6 +181,7 @@ function createDummyWindow(): number {
     height: 600,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      webSecurity: !isDev,
     },
   })
   // REVIEW:
@@ -201,3 +204,144 @@ ipcMain.handle('close-other-windows', (_): string | void => {
   })
   return `ID of the remaining window is: ${currentWindow.id}`
 })
+
+// ipcMain.handle('get-sample-text', (_): string | void => {
+//   return fs.readFileSync(path.resolve(__dirname, '../../sample.txt'), 'utf8')
+// })
+
+ipcMain.handle('get-sample-text-async', async (_): Promise<string | void> => {
+  try {
+    return await new Promise((resolve, reject) => {
+      fs.readFile(
+        path.resolve(__dirname, '../../sample-3.txt'),
+        'utf8',
+        (error, data): string | void => {
+          if (error) return reject(error)
+          return resolve(data)
+        }
+      )
+    })
+  } catch (error) {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return 'Failed to load file.'
+    showErrorDialog(window, error)
+    return undefined
+  }
+})
+
+ipcMain.handle(
+  'get-text-from-dialog-async',
+  async (_): Promise<string | undefined> => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return undefined
+    const result = await dialog.showOpenDialog(window, {
+      properties: ['openFile'],
+      filters: [{ name: 'Text Files', extensions: ['txt'] }],
+    })
+    if (result.canceled) {
+      // NOTE:
+      // 不必要だが練習目的でモーダルを表示
+      showCanceledDialog(window)
+      return undefined
+    }
+    try {
+      return await new Promise((resolve, reject) => {
+        fs.readFile(
+          result.filePaths[0],
+          'utf8',
+          (error, data): void => {
+            if (error) return reject(error)
+            return resolve(data)
+          }
+        )
+      })
+    } catch (error: any) {
+      showErrorDialog(window, error)
+      return undefined
+    }
+  }
+)
+
+ipcMain.handle(
+  'save-text-from-textarea-async',
+  async (_, text: string): Promise<void> => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return
+    const result = await dialog.showSaveDialog(window, {
+      filters: [{ name: 'Text Files', extensions: ['txt'] }],
+    })
+    if (result.canceled) {
+      // NOTE:
+      // 不必要だが練習目的でモーダルを表示
+      return showCanceledDialog(window)
+    }
+    if (result.filePath)
+      fs.writeFile(result.filePath, text, (error) => {
+        error
+          ? showErrorDialog(window, error)
+          : dialog.showMessageBox(window, { type: 'none', message: 'できた☺️' })
+      })
+  }
+)
+
+ipcMain.handle('get-images-from-dialog', (_): string[] | undefined => {
+  const window = BrowserWindow.getFocusedWindow()
+  if (!window) return undefined
+  const files = dialog.showOpenDialogSync(window, {
+    properties: ['openFile', 'multiSelections'],
+    filters: [
+      {
+        name: 'Images',
+        extensions: ['jpg', 'png', 'gif'],
+      },
+    ],
+  })
+  return (
+    files?.map((filePath) => pathToFileURL(filePath).toString()) ?? undefined
+  )
+})
+
+ipcMain.handle(
+  'get-images-from-dialog-async',
+  async (_): Promise<string[] | undefined> => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return undefined
+    const result = await dialog.showOpenDialog(window, {
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        {
+          name: 'Images',
+          extensions: ['jpg', 'png', 'gif'],
+        },
+      ],
+    })
+    if (result.canceled) {
+      // NOTE:
+      // 不必要だが練習目的でモーダルを表示
+      showCanceledDialog(window)
+      return undefined
+    }
+    return (
+      result.filePaths.map((filePath) => pathToFileURL(filePath).toString()) ??
+      undefined
+    )
+  }
+)
+
+function showCanceledDialog(window: BrowserWindow): void {
+  dialog.showMessageBox(window, {
+    type: 'error',
+    title: '残念！',
+    message: '残念！キャンセルされましたわ🥺',
+  })
+}
+
+function showErrorDialog(window: BrowserWindow, error: any): void {
+  dialog.showMessageBox(window, {
+    type: 'error',
+    title: 'すんません...',
+    message: `すんません...エラーですわ😭
+    ${error.code} ${error.errno}`,
+    detail: error.message,
+  })
+}
