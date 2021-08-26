@@ -1,3 +1,4 @@
+import { NuxtConfig } from '@nuxt/types'
 import * as webpack from 'webpack'
 
 // courtesy of https://github.com/282Haniwa/nuxt-electron-example
@@ -85,4 +86,4 @@ export default {
 
   // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-telemetry
   telemetry: false,
-}
+} as NuxtConfig

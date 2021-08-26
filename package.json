@@ -2,7 +2,7 @@
   "name": "test-nuxt-on-electron",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/main/index.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "dev": "npm-run-all dev:main dev:electron",
     "dev:main": "cross-env NODE_ENV=development tsc -p src/main/tsconfig.json",
