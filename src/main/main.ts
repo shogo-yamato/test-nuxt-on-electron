@@ -1,31 +1,30 @@
 // courtesy of https://github.com/282Haniwa/nuxt-electron-example/blob/master/src/main/index.ts
 
 import { pathToFileURL, fileURLToPath } from 'url'
-import http from 'http'
+import { get, createServer } from 'http'
 import path from 'path'
 import fs from 'fs'
 import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
+import { IncomingMessage } from 'node:http'
 import nuxtConfig from '../renderer/nuxt.config'
 import { Image } from '../renderer/types/custom-types'
 
-// @ts-ignore
 nuxtConfig.rootDir = path.resolve('src/renderer')
-// @ts-ignore
-const isDev = nuxtConfig.dev
 
+const isDev = nuxtConfig.dev
 const nuxt = new Nuxt(nuxtConfig)
 const builder = new Builder(nuxt)
-const server = http.createServer(nuxt.render)
+const server = createServer(nuxt.render)
 
 let _NUXT_URL_ = ''
 
 if (isDev) {
   /* eslint-disable no-console */
-  builder.build().catch((err: any) => {
-    console.error(err)
+  builder.build().catch((error: any) => {
+    console.error(error)
     process.exit(1)
   })
   server.listen()
@@ -39,10 +38,18 @@ if (isDev) {
   ).toString()
 }
 
-let window: BrowserWindow | null
+function pollServer(): void {
+  get(_NUXT_URL_, (res: IncomingMessage) => {
+    if (res.statusCode !== 200) {
+      // eslint-disable-next-line no-console
+      console.log('restart pollServer')
+      setTimeout(pollServer, 300)
+    }
+  }).on('error', pollServer)
+}
 
-function createWindow() {
-  window = new BrowserWindow({
+async function createWindow(): Promise<void> {
+  const window = new BrowserWindow({
     width: 1400,
     height: 1000,
     webPreferences: {
@@ -50,38 +57,23 @@ function createWindow() {
       webSecurity: !isDev,
     },
   })
-  // REVIEW:
-  // 要る?
-  window.on('closed', () => (window = null))
   if (isDev) {
-    /* eslint-disable no-console */
     const {
       default: installExtension,
       VUEJS_DEVTOOLS,
     } = require('electron-devtools-installer')
-    installExtension(VUEJS_DEVTOOLS.id)
-      .then((name: any) => {
-        console.log(`Added Extension: ${name}`)
-        if (window) window.webContents.openDevTools()
-      })
-      .catch((err: any) => console.log('An error occurred: ', err))
-    const pollServer = () => {
-      http
-        .get(_NUXT_URL_, (res: any) => {
-          if (res.statusCode === 200) {
-            if (window) window.loadURL(_NUXT_URL_)
-          } else {
-            console.log('restart poolServer')
-            setTimeout(pollServer, 300)
-          }
-        })
-        .on('error', pollServer)
+    /* eslint-disable no-console */
+    try {
+      const name = await installExtension(VUEJS_DEVTOOLS.id)
+      console.log(`Added Extension: ${name}`)
+    } catch (error: any) {
+      console.error(`An error occurred: ${error}`)
     }
-    pollServer()
     /* eslint-enable */
-  } else {
-    return window.loadURL(_NUXT_URL_)
+    pollServer()
   }
+  await window.loadURL(_NUXT_URL_)
+  if (isDev) window.webContents.openDevTools()
 }
 
 // const count = 0
@@ -177,7 +169,7 @@ const windowName: string[] = ['ばなな', 'おれんじ', 'あっぷる']
 // })
 
 function createDummyWindow(): number {
-  window = new BrowserWindow({
+  const window = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -185,9 +177,6 @@ function createDummyWindow(): number {
       webSecurity: !isDev,
     },
   })
-  // REVIEW:
-  // 要る?
-  window.on('closed', () => (window = null))
   window.loadURL(_NUXT_URL_)
   return window.id
 }
