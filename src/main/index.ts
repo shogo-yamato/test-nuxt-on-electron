@@ -1,6 +1,6 @@
 // courtesy of https://github.com/282Haniwa/nuxt-electron-example/blob/master/src/main/index.ts
 
-import { pathToFileURL } from 'url'
+import { pathToFileURL, fileURLToPath } from 'url'
 import http from 'http'
 import path from 'path'
 import fs from 'fs'
@@ -9,6 +9,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
 import nuxtConfig from '../renderer/nuxt.config'
+import { Image } from '../renderer/types/custom-types'
 
 // @ts-ignore
 nuxtConfig.rootDir = path.resolve('src/renderer')
@@ -209,25 +210,25 @@ ipcMain.handle('close-other-windows', (_): string | void => {
 //   return fs.readFileSync(path.resolve(__dirname, '../../sample.txt'), 'utf8')
 // })
 
-ipcMain.handle('get-sample-text-async', async (_): Promise<string | void> => {
-  try {
-    return await new Promise((resolve, reject) => {
-      fs.readFile(
-        path.resolve(__dirname, '../../sample-3.txt'),
-        'utf8',
-        (error, data): string | void => {
-          if (error) return reject(error)
-          return resolve(data)
-        }
-      )
-    })
-  } catch (error) {
-    const window = BrowserWindow.getFocusedWindow()
-    if (!window) return 'Failed to load file.'
-    showErrorDialog(window, error)
-    return undefined
-  }
-})
+// ipcMain.handle('get-sample-text-async', async (_): Promise<string | void> => {
+//   try {
+//     return await new Promise((resolve, reject) => {
+//       fs.readFile(
+//         path.resolve(__dirname, '../../sample-3.txt'),
+//         'utf8',
+//         (error, data): string | void => {
+//           if (error) return reject(error)
+//           return resolve(data)
+//         }
+//       )
+//     })
+//   } catch (error) {
+//     const window = BrowserWindow.getFocusedWindow()
+//     if (!window) return 'Failed to load file.'
+//     showErrorDialog(window, error)
+//     return undefined
+//   }
+// })
 
 ipcMain.handle(
   'get-text-from-dialog-async',
@@ -246,14 +247,10 @@ ipcMain.handle(
     }
     try {
       return await new Promise((resolve, reject) => {
-        fs.readFile(
-          result.filePaths[0],
-          'utf8',
-          (error, data): void => {
-            if (error) return reject(error)
-            return resolve(data)
-          }
-        )
+        fs.readFile(result.filePaths[0], 'utf8', (error, data): void => {
+          if (error) return reject(error)
+          return resolve(data)
+        })
       })
     } catch (error: any) {
       showErrorDialog(window, error)
@@ -277,14 +274,12 @@ ipcMain.handle(
     }
     if (result.filePath)
       fs.writeFile(result.filePath, text, (error) => {
-        error
-          ? showErrorDialog(window, error)
-          : dialog.showMessageBox(window, { type: 'none', message: 'できた☺️' })
+        error ? showErrorDialog(window, error) : showFinishedDialog(window)
       })
   }
 )
 
-ipcMain.handle('get-images-from-dialog', (_): string[] | undefined => {
+ipcMain.handle('get-images-from-dialog', (_): Image[] | undefined => {
   const window = BrowserWindow.getFocusedWindow()
   if (!window) return undefined
   const files = dialog.showOpenDialogSync(window, {
@@ -297,13 +292,17 @@ ipcMain.handle('get-images-from-dialog', (_): string[] | undefined => {
     ],
   })
   return (
-    files?.map((filePath) => pathToFileURL(filePath).toString()) ?? undefined
+    files?.map((filePath) => ({
+      path: pathToFileURL(filePath).toString(),
+      name: path.basename(filePath),
+      checked: false,
+    })) ?? undefined
   )
 })
 
 ipcMain.handle(
   'get-images-from-dialog-async',
-  async (_): Promise<string[] | undefined> => {
+  async (_): Promise<Image[] | undefined> => {
     const window = BrowserWindow.getFocusedWindow()
     if (!window) return undefined
     const result = await dialog.showOpenDialog(window, {
@@ -322,11 +321,86 @@ ipcMain.handle(
       return undefined
     }
     return (
-      result.filePaths.map((filePath) => pathToFileURL(filePath).toString()) ??
-      undefined
+      result.filePaths.map((filePath) => ({
+        path: pathToFileURL(filePath).toString(),
+        name: path.basename(filePath),
+        checked: false,
+      })) ?? undefined
     )
   }
 )
+
+ipcMain.handle(
+  'copy-images-to-different-directory',
+  async (_, images: Image[]) => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return
+    const folderPath = path.resolve(
+      app.getPath('desktop'),
+      'images-demo',
+      `copied-${new Date().toISOString()}`
+    )
+    try {
+      await new Promise<void>((resolve, reject) =>
+        fs.mkdir(folderPath, { recursive: true }, (error) =>
+          error ? reject(error) : resolve()
+        )
+      )
+      await Promise.all(
+        images.map((image) => {
+          return new Promise<void>((resolve, reject) =>
+            fs.copyFile(
+              fileURLToPath(image.path),
+              path.resolve(folderPath, image.name),
+              (error) => (error ? reject(error) : resolve())
+            )
+          )
+        })
+      )
+    } catch (error) {
+      return showErrorDialog(window, error)
+    }
+    showFinishedDialog(window)
+  }
+)
+
+ipcMain.handle(
+  'move-images-to-different-directory',
+  async (_, images: Image[]) => {
+    const window = BrowserWindow.getFocusedWindow()
+    if (!window) return
+    const folderPath = path.resolve(
+      app.getPath('desktop'),
+      'images-demo',
+      `moved-${new Date().toISOString()}`
+    )
+    try {
+      await new Promise<void>((resolve, reject) =>
+        fs.mkdir(folderPath, { recursive: true }, (error) =>
+          error ? reject(error) : resolve()
+        )
+      )
+      await Promise.all(
+        images.map((image) => {
+          return new Promise<void>((resolve, reject) =>
+            fs.rename(
+              fileURLToPath(image.path),
+              path.resolve(folderPath, image.name),
+              (error) => (error ? reject(error) : resolve())
+            )
+          )
+        })
+      )
+    } catch (error) {
+      return showErrorDialog(window, error)
+    }
+    showFinishedDialog(window)
+  }
+)
+
+function showFinishedDialog(window: BrowserWindow): void {
+  dialog.showMessageBox(window, { type: 'none', message: 'できた☺️' })
+}
 
 function showCanceledDialog(window: BrowserWindow): void {
   dialog.showMessageBox(window, {

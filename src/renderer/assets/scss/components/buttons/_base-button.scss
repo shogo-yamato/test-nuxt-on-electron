@@ -9,4 +9,10 @@
   cursor: pointer;
   border: 1px solid $black-dark-grey;
   border-radius: 6px;
+  transition: opacity 0.2s;
+}
+
+.base-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
