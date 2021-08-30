@@ -13,4 +13,9 @@ body {
   -webkit-font-smoothing: antialiased;
   word-wrap: break-word;
   overflow-wrap: break-word;
+
+  /* https://github.com/electron/electron/issues/20583#issuecomment-591378308 */
+  @media print {
+    -webkit-print-color-adjust: exact;
+  }
 }
