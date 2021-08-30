@@ -16,8 +16,15 @@ import {
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
 import { IncomingMessage } from 'node:http'
+import { IpcMainEvent } from 'electron/main'
 import nuxtConfig from '../renderer/nuxt.config'
 import { Image } from '../renderer/types/custom-types'
+import { printWindow } from './helpers/print'
+import {
+  showFinishedDialog,
+  showCanceledDialog,
+  showErrorDialog,
+} from './helpers/dialog'
 
 nuxtConfig.rootDir = path.resolve('src/renderer')
 
@@ -42,7 +49,7 @@ if (isDev) {
 } else {
   _NUXT_URL_ = pathToFileURL(
     path.resolve(__dirname, '../../dist/nuxt-build/index.html')
-  ).toString()
+  ).href
 }
 
 function pollServer(): void {
@@ -289,7 +296,7 @@ ipcMain.handle('get-images-from-dialog', (_): Image[] | undefined => {
   })
   return (
     files?.map((filePath) => ({
-      path: pathToFileURL(filePath).toString(),
+      path: pathToFileURL(filePath).href,
       name: path.basename(filePath),
       checked: false,
     })) ?? undefined
@@ -318,7 +325,7 @@ ipcMain.handle(
     }
     return (
       result.filePaths.map((filePath) => ({
-        path: pathToFileURL(filePath).toString(),
+        path: pathToFileURL(filePath).href,
         name: path.basename(filePath),
         checked: false,
       })) ?? undefined
@@ -403,33 +410,81 @@ ipcMain.handle('get-printers', (): PrinterInfo[] | undefined => {
 ipcMain.handle('print-window', (): void => {
   const window = BrowserWindow.getFocusedWindow()
   if (!window) return
-  window.webContents.print(
-    { printBackground: true, margins: { marginType: 'none' } },
-    (success, errorType) => {
-      if (!success)
-        showErrorDialog(window, { code: '', errno: '', detail: errorType })
-    }
-  )
+  try {
+    printWindow(window)
+  } catch (error) {
+    showErrorDialog(window, {
+      code: '',
+      errno: '',
+      message: error,
+    })
+  }
 })
 
-function showFinishedDialog(window: BrowserWindow): void {
-  dialog.showMessageBox(window, { type: 'none', message: 'できた☺️' })
+let contactSheetImages: string[]
+
+// NOTE:
+// ダミーデータ用関数
+function generateDummyContactSheetImages(): string[] {
+  const images: string[] = []
+  for (let i = 0; i < 4; i++) {
+    images.push(
+      pathToFileURL(
+        path.resolve(
+          app.getPath('desktop'),
+          'samples',
+          'images',
+          `dummy-${i}.jpg`
+        )
+      ).href
+    )
+  }
+  return images
 }
 
-function showCanceledDialog(window: BrowserWindow): void {
-  dialog.showMessageBox(window, {
-    type: 'error',
-    title: '残念！',
-    message: '残念！キャンセルされましたわ🥺',
-  })
+function resetContactSheetImages(): void {
+  contactSheetImages = []
 }
 
-function showErrorDialog(window: BrowserWindow, error: any): void {
-  dialog.showMessageBox(window, {
-    type: 'error',
-    title: 'すんません...',
-    message: `すんません...エラーですわ😭
-    ${error.code} ${error.errno}`,
-    detail: error.message,
+ipcMain.handle('mutate-contact-sheet-images', (_, images?: string[]) => {
+  contactSheetImages = images || generateDummyContactSheetImages()
+})
+
+ipcMain.handle('print-contact-sheet', async () => {
+  const window = new BrowserWindow({
+    show: false,
+    width: 800,
+    height: 600,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: !isDev,
+    },
   })
-}
+  await window.loadURL(_NUXT_URL_)
+  window.webContents.send('open-contact-sheet')
+})
+
+ipcMain.handle('get-contact-sheet-images', (): string[] => contactSheetImages)
+
+ipcMain.on(
+  'print-current-window',
+  async (event: IpcMainEvent): Promise<void> => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (window) {
+      try {
+        await printWindow(window)
+        resetContactSheetImages()
+      } catch (error) {
+        const focusedWindow = BrowserWindow.getFocusedWindow()
+        if (focusedWindow)
+          showErrorDialog(focusedWindow, {
+            code: '',
+            errno: '',
+            message: error,
+          })
+      } finally {
+        window.close()
+      }
+    }
+  }
+)

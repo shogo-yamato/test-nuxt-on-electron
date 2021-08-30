@@ -30,6 +30,9 @@ export default Vue.extend({
         this.messageFromMenu = message
       }
     )
+    window.electron.on('open-contact-sheet', () => {
+      this.$router.push('/contact-sheet')
+    })
   },
   methods: {
     async openDummyWindow(): Promise<void> {
