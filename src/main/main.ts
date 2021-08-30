@@ -4,7 +4,14 @@ import { pathToFileURL, fileURLToPath } from 'url'
 import { get, createServer } from 'http'
 import path from 'path'
 import fs from 'fs'
-import { app, BrowserWindow, dialog, ipcMain, Menu } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  PrinterInfo,
+} from 'electron'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
 import { AddressInfo } from 'node:net'
@@ -386,6 +393,24 @@ ipcMain.handle(
     showFinishedDialog(window)
   }
 )
+
+ipcMain.handle('get-printers', (): PrinterInfo[] | undefined => {
+  const window = BrowserWindow.getFocusedWindow()
+  if (!window) return undefined
+  return window.webContents.getPrinters()
+})
+
+ipcMain.handle('print-window', (): void => {
+  const window = BrowserWindow.getFocusedWindow()
+  if (!window) return
+  window.webContents.print(
+    { printBackground: true, margins: { marginType: 'none' } },
+    (success, errorType) => {
+      if (!success)
+        showErrorDialog(window, { code: '', errno: '', detail: errorType })
+    }
+  )
+})
 
 function showFinishedDialog(window: BrowserWindow): void {
   dialog.showMessageBox(window, { type: 'none', message: 'できた☺️' })
