@@ -11,6 +11,7 @@ import {
   ipcMain,
   Menu,
   PrinterInfo,
+  crashReporter,
 } from 'electron'
 // @ts-ignore
 import { Nuxt, Builder } from 'nuxt'
@@ -150,6 +151,10 @@ Menu.setApplicationMenu(
     },
   ])
 )
+
+crashReporter.start({
+  uploadToServer: false,
+})
 
 app.whenReady().then(() => {
   createWindow()
