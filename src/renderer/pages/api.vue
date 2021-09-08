@@ -10,13 +10,22 @@
         class="image"
         :src="cat.url"
       />
-      <button
-        class="base-button"
-        :disabled="$fetchState.pending"
-        @click="$fetch"
-      >
-        😻
-      </button>
+      <div class="flex">
+        <button
+          class="base-button"
+          :disabled="isVoteButtonDisabled || $fetchState.pending"
+          @click="vote(VoteValue.Upvote)"
+        >
+          👍
+        </button>
+        <button
+          class="base-button"
+          :disabled="isVoteButtonDisabled || $fetchState.pending"
+          @click="vote(VoteValue.Downvote)"
+        >
+          👎
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -43,10 +52,12 @@ export default defineComponent({
       width: number
     } | null>(null)
 
-    useFetch(async () => {
+    const { fetch: fetchCat } = useFetch(async () => {
+      const url = new URL('https://api.thecatapi.com/v1/images/search')
+      url.search = new URLSearchParams({ limit: '1' }).toString()
       cat.value = (
         await (
-          await fetch('https://api.thecatapi.com/v1/images/search', {
+          await fetch(url.href, {
             headers: {
               'x-api-key': apiKey,
             },
@@ -55,7 +66,37 @@ export default defineComponent({
       )[0]
     })
 
-    return { cat }
+    enum VoteValue {
+      Downvote = 0,
+      Upvote = 1,
+    }
+
+    const isVoteButtonDisabled = ref<boolean>(false)
+
+    async function vote(value: VoteValue) {
+      isVoteButtonDisabled.value = true
+      try {
+        const response = await fetch('https://api.thecatapi.com/v1/votes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+          },
+          body: JSON.stringify({
+            image_id: cat.value?.id,
+            value,
+          }),
+        })
+        if (!response.ok) throw new Error(response.status.toString())
+        fetchCat()
+      } catch (e) {
+        console.error(e)
+      } finally {
+        isVoteButtonDisabled.value = false
+      }
+    }
+
+    return { cat, VoteValue, isVoteButtonDisabled, vote }
   },
 })
 </script>

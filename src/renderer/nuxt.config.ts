@@ -89,7 +89,7 @@ export default {
   // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-telemetry
   telemetry: false,
 
-  privateRuntimeConfig: {
+  publicRuntimeConfig: {
     apiKey: process.env.THE_CAT_API_KEY,
   },
 } as NuxtConfig
