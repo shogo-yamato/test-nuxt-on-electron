@@ -2,7 +2,21 @@
   <div class="view-container">
     <h1 class="page-title">API</h1>
     <div class="api-container">
-      <img v-if="cat" :src="cat.url" alt="猫ちゃん" class="image" />
+      <div v-if="fetchState.pending" class="image -center">😽</div>
+      <div v-else-if="fetchState.error" class="image -center">🙀</div>
+      <img
+        v-else-if="cat"
+        alt="ランダムな猫ちゃん"
+        class="image"
+        :src="cat.url"
+      />
+      <button
+        class="base-button"
+        :disabled="fetchState.pending"
+        @click="fetchCat"
+      >
+        😻
+      </button>
     </div>
   </div>
 </template>
@@ -29,7 +43,7 @@ export default defineComponent({
       width: number
     } | null>(null)
 
-    const { fetch: nuxtFetch } = useFetch(async () => {
+    const { fetch: fetchCat, fetchState } = useFetch(async () => {
       cat.value = (
         await (
           await fetch('https://api.thecatapi.com/v1/images/search', {
@@ -41,23 +55,9 @@ export default defineComponent({
       )[0]
     })
 
-    nuxtFetch()
+    fetchCat()
 
-    return { cat }
+    return { cat, fetchCat, fetchState }
   },
 })
 </script>
-
-<style lang="scss" scoped>
-.api-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
-}
-</style>
