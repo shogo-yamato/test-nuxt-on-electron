@@ -5,6 +5,7 @@
       <nuxt-link class="link" to="/tutorial">TUTORIAL</nuxt-link>
       <nuxt-link class="link" to="/filesystem">FILESYSTEM</nuxt-link>
       <nuxt-link class="link" to="/printer">PRINTER</nuxt-link>
+      <nuxt-link class="link" to="/api">API</nuxt-link>
     </nav>
     <Nuxt class="view" />
   </div>

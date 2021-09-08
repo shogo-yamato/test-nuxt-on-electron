@@ -55,6 +55,8 @@ export default {
     '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/stylelint
     '@nuxtjs/stylelint-module',
+    // https://composition-api.nuxtjs.org/
+    '@nuxtjs/composition-api/module',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
@@ -86,4 +88,8 @@ export default {
 
   // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-telemetry
   telemetry: false,
+
+  privateRuntimeConfig: {
+    apiKey: process.env.THE_CAT_API_KEY,
+  },
 } as NuxtConfig
