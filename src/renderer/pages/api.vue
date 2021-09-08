@@ -2,8 +2,8 @@
   <div class="view-container">
     <h1 class="page-title">API</h1>
     <div class="api-container">
-      <div v-if="fetchState.pending" class="image -center">😽</div>
-      <div v-else-if="fetchState.error" class="image -center">🙀</div>
+      <div v-if="$fetchState.pending" class="image -center">😽</div>
+      <div v-else-if="$fetchState.error" class="image -center">🙀</div>
       <img
         v-else-if="cat"
         alt="ランダムな猫ちゃん"
@@ -12,8 +12,8 @@
       />
       <button
         class="base-button"
-        :disabled="fetchState.pending"
-        @click="fetchCat"
+        :disabled="$fetchState.pending"
+        @click="$fetch"
       >
         😻
       </button>
@@ -43,7 +43,7 @@ export default defineComponent({
       width: number
     } | null>(null)
 
-    const { fetch: fetchCat, fetchState } = useFetch(async () => {
+    useFetch(async () => {
       cat.value = (
         await (
           await fetch('https://api.thecatapi.com/v1/images/search', {
@@ -55,9 +55,7 @@ export default defineComponent({
       )[0]
     })
 
-    fetchCat()
-
-    return { cat, fetchCat, fetchState }
+    return { cat }
   },
 })
 </script>
