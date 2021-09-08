@@ -17,4 +17,9 @@
     justify-content: center;
     font-size: 3rem;
   }
+
+  > .flex {
+    display: flex;
+    column-gap: 16px;
+  }
 }
