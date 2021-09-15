@@ -3,17 +3,19 @@ import DragSelect from 'dragselect'
 
 export default function useDragSelect() {
   const dragSelect = ref<DragSelect>()
+  const selectedElements = ref<HTMLElement[]>()
 
   onMounted((): void => {
     dragSelect.value = new DragSelect({
       area: document.getElementById('select-component') as HTMLDivElement,
       selectedClass: '-selected',
-      selectorClass: 'dragselect-selector',
+      selectorClass: 'select-selector',
+      selectableClass: 'select-item',
       draggability: false,
     })
 
     dragSelect.value.subscribe('callback', ({ items }: CallbackObject) => {
-      console.log(items)
+      selectedElements.value = items
     })
   })
 
@@ -21,5 +23,5 @@ export default function useDragSelect() {
     document.querySelector('.ds-selector-area')?.remove()
   })
 
-  return { dragSelect }
+  return { dragSelect, selectedElements }
 }

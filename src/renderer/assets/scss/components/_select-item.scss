@@ -1,0 +1,17 @@
+.select-item {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border 0.15s, background-color 0.15s;
+
+  &.-selected {
+    background-color: $pink-rose-mallow;
+    border-color: $pink-cerise-pink;
+  }
+
+  > .image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}

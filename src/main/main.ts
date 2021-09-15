@@ -4,6 +4,7 @@ import { pathToFileURL, fileURLToPath } from 'url'
 import { get, createServer } from 'http'
 import path from 'path'
 import fs from 'fs'
+import crypto from 'crypto'
 import {
   app,
   BrowserWindow,
@@ -304,6 +305,7 @@ ipcMain.handle('get-images-from-dialog', (_): Image[] | undefined => {
       path: pathToFileURL(filePath).href,
       name: path.basename(filePath),
       checked: false,
+      id: crypto.randomBytes(16).toString('base64'),
     })) ?? undefined
   )
 })
@@ -333,6 +335,7 @@ ipcMain.handle(
         path: pathToFileURL(filePath).href,
         name: path.basename(filePath),
         checked: false,
+        id: crypto.randomBytes(16).toString('base64'),
       })) ?? undefined
     )
   }
