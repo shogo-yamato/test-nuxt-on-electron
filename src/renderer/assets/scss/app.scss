@@ -22,11 +22,13 @@
 @import 'objects/printer-container';
 @import 'objects/contact-sheet-container';
 @import 'objects/api-container';
+@import 'objects/drag-and-select-container';
 
 // components
 @import 'components/main';
 @import 'components/page-title';
 @import 'components/test-component';
+@import 'components/select-component';
 
 // components/buttons
 @import 'components/buttons/base-button';
