@@ -10057,6 +10057,11 @@ scule@^0.2.1:
   resolved "https://registry.yarnpkg.com/scule/-/scule-0.2.1.tgz#0c1dc847b18e07219ae9a3832f2f83224e2079dc"
   integrity sha512-M9gnWtn3J0W+UhJOHmBxBTwv8mZCan5i1Himp60t6vvZcor0wr+IM0URKmIglsWJ7bRujNAVVN77fp+uZaWoKg==
 
+selectable.js@^0.17.8:
+  version "0.17.8"
+  resolved "https://registry.yarnpkg.com/selectable.js/-/selectable.js-0.17.8.tgz#03291b4f32c29625f11e966c653fb38c2cf26542"
+  integrity sha512-QCctQq8eHFz3O8pBN0UgW431MAblx0e7psIBwo79ddJ4hYy+vV+huJsZO6kskduCDC59dwDxZgvNOHeXUkJHMw==
+
 semver-compare@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/semver-compare/-/semver-compare-1.0.0.tgz#0dee216a1c941ab37e9efb1788f6afc5ff5537fc"
