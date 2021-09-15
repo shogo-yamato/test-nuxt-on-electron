@@ -14,6 +14,10 @@ export default function useSelectable() {
         selectable: 'select-item',
         deselecting: '-deselecting',
       },
+      lasso: {
+        border: '2px dashed #e93b81',
+        'background-color': 'rgba(245, 171, 201, 0.4)',
+      },
     })
     selectable.value.on(
       'end',
