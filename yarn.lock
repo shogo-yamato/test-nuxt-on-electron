@@ -4731,6 +4731,11 @@ dotenv@^9.0.2:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-9.0.2.tgz#dacc20160935a37dea6364aa1bef819fb9b6ab05"
   integrity sha512-I9OvvrHp4pIARv4+x9iuewrWycX6CcZtoAu1XrzPxc5UygMJXJZYmBsynku8IkrJwgypE5DGNjDPmPRhDCptUg==
 
+dragselect@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/dragselect/-/dragselect-2.2.2.tgz#5f74fe6f3c8770a30f0044cfb871a1a549f6452e"
+  integrity sha512-PsdORg73SBxS3/10nJqdUQXRmWtdO8LM08h6nK3IhQEdfN5LefV5SsoMJVRTmuHQ2URqruX1rpVmkn/GCfumJA==
+
 duplexer3@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/duplexer3/-/duplexer3-0.1.4.tgz#ee01dd1cac0ed3cbc7fdbea37dc0a8f1ce002ce2"
