@@ -3,16 +3,14 @@
     <h1 class="page-title">DRAG & SELECT</h1>
     <div class="drag-and-select-container">
       <div id="select-component" class="select-component select">
-        <template v-if="images">
-          <button
-            v-for="(image, index) in images"
-            :key="`select-${index}`"
-            type="button"
-            class="button"
-          >
-            <img class="image" :src="image.path" :alt="image.name" />
-          </button>
-        </template>
+        <button
+          v-for="(image, index) in images"
+          :key="`select-${index}`"
+          type="button"
+          class="button"
+        >
+          <img class="image" :src="image.path" :alt="image.name" />
+        </button>
       </div>
       <div class="view-container view"></div>
       <button class="base-button button" @click="getImages">
