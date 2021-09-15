@@ -1,0 +1,15 @@
+.select-item {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  &.-selected {
+    border: 3px solid $pink-cerise-pink;
+  }
+
+  &.-selecting,
+  &.-selected {
+    background-color: $pink-rose-mallow;
+    border-radius: 4px;
+  }
+}

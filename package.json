@@ -66,6 +66,7 @@
     "rimraf": "^3.0.2",
     "sass": "^1.40.0",
     "sass-loader": "^10",
+    "selectable.js": "^0.17.8",
     "stylelint": "^13.13.1",
     "stylelint-config-prettier": "^8.0.2",
     "stylelint-config-recess-order": "^2.5.0",
