@@ -4,23 +4,4 @@
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 8px;
   user-select: none;
-
-  > .button {
-    padding: 0;
-    border-color: $pink-cerise-pink;
-    border-style: solid;
-    border-width: 1px;
-    border-radius: 4px;
-  }
-
-  > .button.-selected {
-    background-color: $pink-rose-mallow;
-    border-width: 3px;
-  }
-
-  > .button > .image {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-  }
 }
