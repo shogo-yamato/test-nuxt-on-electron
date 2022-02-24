@@ -52,7 +52,7 @@
     "@types/node": "^16.11.1",
     "commitizen": "^4.2.4",
     "cross-env": "^7.0.3",
-    "electron": "^15.2.0",
+    "electron": "^17.1.0",
     "dragselect": "^2.2.2",
     "electron-builder": "^22.13.1",
     "electron-devtools-installer": "^3.2.0",
